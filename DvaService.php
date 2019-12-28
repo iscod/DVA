@@ -58,7 +58,7 @@ class DvaService
         }
     }
 
-    function getGodDayPrice()
+    function getGoDaddyPrice()
     {
         $headers = [
             'Accept: application/json, text/plain',
@@ -75,12 +75,13 @@ class DvaService
         $price = $response['govalue'] ?? '0';
 
         return [
+            'platform' => 'GoDaddy',
             'price' => $price,
             'currency' => 'USD'
         ];
     }
 
-    function getJuMingPrice()
+    function getWanMiPrice()
     {
         $url = 'http://www.wanmi.cc/gj/' . $this->domain;
         $output = $this->do_request($url);
@@ -101,6 +102,36 @@ class DvaService
         $price = str_replace(',', '', $price);
 
         return [
+            'platform' => 'wanMi',
+            'price' => trim($price),
+            'currency' => 'RMB'
+        ];
+    }
+
+    function getYuMiPrice() {
+        $url = "http://www.yumi.com/tool/assess/domain/" . $this->domain;
+        $output = $this->do_request($url, [], false, []);
+        $regex4 = "/<span class=\"col-f60 f20\".*?>.*?<\/span>/ism";
+        if (preg_match_all($regex4, $output, $matches)) {
+            preg_match('/>(¥)(.*)<\/span>/', $matches[0][0], $return, PREG_OFFSET_CAPTURE);
+            $price = $return[2][0] ?? '0';
+            if (!$price) {
+                preg_match('/>(小于)(.*)(元)/', $matches[0][0], $return, PREG_OFFSET_CAPTURE);
+                $price = $return[2][0] ?? '0';
+            }
+
+            if (!$price) {
+                preg_match('/>(.*)<\/span>/', $matches[0][0], $return, PREG_OFFSET_CAPTURE);
+                if ($return[1][0] == '域名价值巨大') {
+                    $price = '10000000';
+                }
+            }
+        } else {
+            $price = '0';
+        }
+
+        return [
+            'platform' => 'yuMi',
             'price' => trim($price),
             'currency' => 'RMB'
         ];
@@ -109,8 +140,9 @@ class DvaService
     function getPrice()
     {
         $price = [];
-        $price[] = $this->getGodDayPrice();
-        $price[] = $this->getJuMingPrice();
+        $price[] = $this->getGoDaddyPrice();
+        $price[] = $this->getWanMiPrice();
+        $price[] = $this->getYuMiPrice();
         return $price;
     }
 }

@@ -1,11 +1,11 @@
 <?php
 
-include_once 'DvaService.php';
+include_once __DIR__ . '/../DvaService.php';
 
 try {
     $price = (new DvaService('abc.com'))->getPrice();
     foreach ($price as $value) {
-        echo $value['currency'] . "\t : " . $value['price'] . "\n";
+        echo $value['platform'] . "\t : " . $value['price'] . " \t".  $value['currency'] . "\n";
     }
 } catch (ErrorException $e) {
     echo $e->getMessage();
